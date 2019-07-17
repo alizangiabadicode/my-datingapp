@@ -1,10 +1,18 @@
-import { Component } from '@angular/core';
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { Component, OnInit } from '@angular/core';
+import { LoginauthService } from './_services/loginauth.service';
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'app';
+  jwt = new JwtHelperService();
+  constructor(private auth: LoginauthService) {}
+  ngOnInit() {
+      this.auth.decodedone = this.jwt.decodeToken(localStorage.getItem('token'));
+  }
 }
