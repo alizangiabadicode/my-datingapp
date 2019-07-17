@@ -30,7 +30,7 @@ namespace datingapp.api.Controllers
             userdto.UserName = userdto.UserName.ToLower();
             if (await rep.UserExists(userdto.UserName))
             {
-                return BadRequest("the user is not found!");
+                return BadRequest("the user already exists");
             }
 
             User user = new User()
@@ -46,6 +46,8 @@ namespace datingapp.api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDTO userdto)
         {
+            //throw new Exception("this is the exception");
+
             var user = await rep.Login(userdto.UserName, userdto.Password);
 
             if (user == null)
@@ -54,26 +56,30 @@ namespace datingapp.api.Controllers
             }
 
             var claims = new[]{
-                new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
-                new Claim(ClaimTypes.Name,userdto.UserName)
-            };
+                    new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),
+                    new Claim(ClaimTypes.Name,userdto.UserName)
+                };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetSection("AppSettings:Token").Value));
 
-            var cred= new SigningCredentials(key,SecurityAlgorithms.HmacSha512Signature);
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-            var tokenDiscriptor = new SecurityTokenDescriptor{
+            var tokenDiscriptor = new SecurityTokenDescriptor
+            {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddDays(1),
                 SigningCredentials = cred
             };
 
             var tokenhandler = new JwtSecurityTokenHandler();
-            var token= tokenhandler.CreateToken(tokenDiscriptor);
+            var token = tokenhandler.CreateToken(tokenDiscriptor);
 
-            return Ok(new{
+            return Ok(new
+            {
                 token = tokenhandler.WriteToken(token)
             });
+
         }
+
     }
 }
