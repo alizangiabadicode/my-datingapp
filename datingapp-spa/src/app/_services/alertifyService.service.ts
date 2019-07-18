@@ -20,15 +20,15 @@ constructor() {
    alertify.success(message);
  }
 
- error(error: any) {
-   alertify.error(error);
+ error(message: any) {
+   alertify.error(message);
  }
 
  message(message: any) {
    alertify.message(message);
  }
 
- warning(warning: any) {
-   alertify.warning(warning);
+ warning(message: any) {
+   alertify.warning(message);
  }
 }
