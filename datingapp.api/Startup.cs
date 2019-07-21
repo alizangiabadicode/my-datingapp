@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using datingapp.api.Helpers;
+using AutoMapper;
 
 namespace datingapp.api
 {
@@ -34,11 +35,19 @@ namespace datingapp.api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                .AddJsonOptions(
+                    e => {
+                        e.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    }
+                );
 
             services.AddCors();
             services.AddDbContext<DataContext>(e=>e.UseSqlite(Configuration.GetConnectionString("first")));
             services.AddScoped<IAuthRepository,AuthRepository>();
+            services.AddScoped<IDatingRepository, DatingRepository>();
+            services.AddTransient<Seed>();
+            services.AddAutoMapper();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
                 options =>{
                     options.TokenValidationParameters = new TokenValidationParameters{
@@ -53,7 +62,7 @@ namespace datingapp.api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seed)
         {
             if (env.IsDevelopment())
             {
@@ -80,7 +89,7 @@ namespace datingapp.api
             }
 
             // app.UseHttpsRedirection();
-
+            // seed.StartSeed();  // ye bar seda zade mishe kolan
             app.UseCors(e=>e.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
             app.UseAuthentication();
             app.UseMvc();
